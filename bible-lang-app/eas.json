@@ -6,13 +6,25 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "559759702510-fdhjulnaarpppp0c886m35ok1ovdul60.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "559759702510-bc8rlj2s5tvkqbm6fm5630qf2550i8ic.apps.googleusercontent.com"
+      }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "559759702510-fdhjulnaarpppp0c886m35ok1ovdul60.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "559759702510-bc8rlj2s5tvkqbm6fm5630qf2550i8ic.apps.googleusercontent.com"
+      }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "559759702510-fdhjulnaarpppp0c886m35ok1ovdul60.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "559759702510-bc8rlj2s5tvkqbm6fm5630qf2550i8ic.apps.googleusercontent.com"
+      }
     }
   },
   "submit": {
