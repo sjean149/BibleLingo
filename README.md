@@ -120,5 +120,7 @@ Actions → Variables). `.github/workflows/keep-awake.yml` then pings it every 1
 - Scripture text: World English Bible, Reina-Valera 1909, Louis Segond 1910 (public domain), via
   [bible.helloao.org](https://bible.helloao.org).
 - Spanish audio: Reina-Valera 1909 recordings from <!-- TODO: name the source and its license -->.
+- French audio: Louis Segond 1910 recordings used by permission of
+  [Trésor sonore](https://www.tresorsonore.com), through [Bible Brain](https://www.faithcomesbyhearing.com/bible-brain).
 
 Built by <!-- TODO: your name --> · [GitHub](https://github.com/sjean149) · <!-- TODO: LinkedIn / portfolio -->

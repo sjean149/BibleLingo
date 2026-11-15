@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 import { fetchChapterAudio, fetchVerses, translateText } from '../api';
+import { AUDIO_CREDITS } from '../appInfo';
 import { colors, radius } from '../theme';
 import { speakSequence, speakText, stopSpeaking } from '../utils/speech';
 import SceneBackground from '../components/SceneBackground';
@@ -221,6 +222,16 @@ export default function ChapterReaderScreen({ title, chapterId, lang, scene, onE
         </View>
       )}
 
+      {audioUrl && AUDIO_CREDITS[lang] && (
+        <Pressable
+          onPress={() => Linking.openURL(AUDIO_CREDITS[lang].url).catch(() => {})}
+          accessibilityRole="link"
+          style={styles.credit}
+        >
+          <Text style={styles.creditText}>{AUDIO_CREDITS[lang].text} · Learn more</Text>
+        </Pressable>
+      )}
+
       {error ? (
         <View style={styles.center}>
           <Text style={styles.message}>Can't load this chapter: {error}</Text>
@@ -322,6 +333,8 @@ const styles = StyleSheet.create({
   audioBar: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingBottom: 8 },
   track: { flex: 1, height: 6, borderRadius: 3, backgroundColor: colors.line, overflow: 'hidden' },
   trackFill: { height: '100%', backgroundColor: colors.lapis },
+  credit: { paddingHorizontal: 16, paddingBottom: 6 },
+  creditText: { fontSize: 12, color: colors.muted, textDecorationLine: 'underline' },
   time: { fontSize: 13, fontWeight: '700', color: colors.muted, fontVariant: ['tabular-nums'], minWidth: 78, textAlign: 'right' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   message: { fontSize: 16, color: colors.muted, textAlign: 'center' },

@@ -16,7 +16,13 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "package": "com.anonymous.biblelangapp"
+      "package": "com.sephorajeanmary.biblelangapp",
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -24,8 +30,15 @@
     "plugins": [
       "expo-status-bar",
       "expo-audio",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-font",
+      "expo-asset"
     ],
-    "scheme": "biblelingo"
+    "scheme": "biblelingo",
+    "extra": {
+      "eas": {
+        "projectId": "28a9fd9e-eb0b-474a-a42c-3a3d17ed59a3"
+      }
+    }
   }
 }

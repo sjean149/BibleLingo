@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     supabase_url: str = ""
     supabase_service_key: str = ""
 
+    # Bible Brain (Faith Comes By Hearing), used by app.fetch_bible_brain_audio for the French recordings.
+    bible_brain_api_key: str = ""
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
