@@ -7,7 +7,7 @@ itself, tap-to-translate on any phrase, and real recorded audio for every Spanis
 
 <!-- TODO: record a 10–15 second GIF (path screen → a lesson → the reader with audio playing)
      and save it as docs/demo.gif. ScreenToGif (Windows) or the Expo web build in Chrome works well. -->
-![BibleDuo demo](docs/demo.gif)
+![BibleLingo demo](docs/demo.gif)
 
 > The server is on a free plan. If nobody has used it for a while, the first screen shows
 > "Waking up the server…" for up to a minute.
@@ -120,5 +120,7 @@ Actions → Variables). `.github/workflows/keep-awake.yml` then pings it every 1
 - Scripture text: World English Bible, Reina-Valera 1909, Louis Segond 1910 (public domain), via
   [bible.helloao.org](https://bible.helloao.org).
 - Spanish audio: Reina-Valera 1909 recordings from <!-- TODO: name the source and its license -->.
+- French audio: Louis Segond 1910 recordings used by permission of
+  [Trésor sonore](https://www.tresorsonore.com), through [Bible Brain](https://www.faithcomesbyhearing.com/bible-brain).
 
 Built by <!-- TODO: your name --> · [GitHub](https://github.com/sjean149) · <!-- TODO: LinkedIn / portfolio -->

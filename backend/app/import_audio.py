@@ -1,20 +1,24 @@
 """
-Links each chapter to its Spanish (Reina-Valera 1909) audio file in Supabase Storage.
+Links each chapter to its audio file in Supabase Storage, for one language at a time:
+    es  Reina-Valera 1909   bucket RVA1909_NT_audio  ->  chapters.audio_url_es
+    fr  Louis Segond 1910   bucket LSG1910_NT_audio  ->  chapters.audio_url_fr
+        (filled by app.fetch_bible_brain_audio)
 
-The MP3s live in the public bucket RVA1909_NT_audio and are named like
+The MP3s are named like
     40_Mat001.mp3   ->  book 40 (Matthew), chapter 1
     58_Heb013.mp3   ->  book 58 (Hebrews), chapter 13
 The number before the underscore is the book's position in the Bible, which is the
 same number as Book.order in our database. The last three digits are the chapter.
 
-For every file, this script saves the file's public URL in chapters.audio_url_es.
+For every file, this script saves the file's public URL in that language's column.
 It does NOT download or copy any audio; the app will stream straight from Supabase.
 
 Run from the backend folder with the venv active:
 
-  python -m app.import_audio --check    list the bucket and show what WOULD be saved
-                                        (writes nothing; do this first)
-  python -m app.import_audio            save the URLs
+  python -m app.import_audio --check            list the bucket and show what WOULD be saved
+                                                (writes nothing; do this first)
+  python -m app.import_audio                    save the Spanish URLs
+  python -m app.import_audio --lang fr --check  the same for French
 
 Needs two lines in backend/.env (see env.example):
   SUPABASE_URL=https://phyciutjfkuekcqsqbyf.supabase.co
@@ -31,9 +35,12 @@ import urllib.request
 
 from app.config import settings
 
-BUCKET = "RVA1909_NT_audio"
+# language -> (bucket, chapters column)
+AUDIO = {
+    "es": ("RVA1909_NT_audio", "audio_url_es"),
+    "fr": ("LSG1910_NT_audio", "audio_url_fr"),
+}
 FOLDER = ""  # the files sit at the top of the bucket, not in a sub-folder
-COLUMN = "audio_url_es"
 
 # "40_Mat001.mp3" -> ("40", "Mat", "001").  The middle part can be "1Co", "Heb", ...
 FILE_NAME = re.compile(r"^(\d{1,2})_([0-9A-Za-z]+?)(\d{3})\.mp3$", re.IGNORECASE)
@@ -55,9 +62,9 @@ def _storage_headers() -> dict:
     return headers
 
 
-def list_bucket() -> list[str]:
+def list_bucket(bucket: str) -> list[str]:
     """Every file name in the bucket folder. Supabase returns at most 1000 per request, so page through."""
-    url = f"{settings.supabase_url.rstrip('/')}/storage/v1/object/list/{BUCKET}"
+    url = f"{settings.supabase_url.rstrip('/')}/storage/v1/object/list/{bucket}"
     headers = _storage_headers()
     names: list[str] = []
     offset, page = 0, 1000
@@ -82,10 +89,10 @@ def list_bucket() -> list[str]:
         offset += page
 
 
-def public_url(file_name: str) -> str:
+def public_url(bucket: str, file_name: str) -> str:
     """The same link you get from 'Get URL' in the Supabase dashboard (the bucket is public)."""
     path = f"{FOLDER}/{file_name}" if FOLDER else file_name
-    return f"{settings.supabase_url.rstrip('/')}/storage/v1/object/public/{BUCKET}/{urllib.parse.quote(path)}"
+    return f"{settings.supabase_url.rstrip('/')}/storage/v1/object/public/{bucket}/{urllib.parse.quote(path)}"
 
 
 # ---------------------------------------------------------------- step 2: turn file names into (book, chapter)
@@ -107,47 +114,48 @@ def parse_files(names: list[str]) -> tuple[dict[tuple[int, int], str], list[str]
 # ---------------------------------------------------------------- step 3: make sure the column exists
 
 
-def ensure_column(engine, write: bool) -> bool:
+def ensure_column(engine, column: str, write: bool) -> bool:
     """
     create_all() never adds columns to a table that already exists, so a database made before
-    audio_url_es was added to models.py won't have it. Add it (only on a real run).
+    the audio columns were added to models.py won't have them. Add it (only on a real run).
     """
     from sqlalchemy import inspect, text
 
     columns = {c["name"] for c in inspect(engine).get_columns("chapters")}
-    if COLUMN in columns:
+    if column in columns:
         return True
     if not write:
-        print(f"Note: the chapters table has no {COLUMN} column yet. The real run will add it.")
+        print(f"Note: the chapters table has no {column} column yet. The real run will add it.")
         return False
     with engine.begin() as conn:
-        conn.execute(text(f"ALTER TABLE chapters ADD COLUMN {COLUMN} VARCHAR"))
-    print(f"Added the missing {COLUMN} column to the chapters table.")
+        conn.execute(text(f"ALTER TABLE chapters ADD COLUMN {column} VARCHAR"))
+    print(f"Added the missing {column} column to the chapters table.")
     return True
 
 
 # ---------------------------------------------------------------- step 4: save a URL on each matching chapter
 
 
-def run(write: bool) -> None:
+def run(lang: str, write: bool) -> None:
     from sqlalchemy import literal, update
 
     from app.database import SessionLocal, engine
     from app.models import Book, Chapter
 
-    print(f"Listing files in the '{BUCKET}' bucket...")
-    names = list_bucket()
+    bucket, column = AUDIO[lang]
+    print(f"Listing files in the '{bucket}' bucket...")
+    names = list_bucket(bucket)
     files, skipped = parse_files(names)
     print(f"  {len(names)} files, {len(files)} named like 40_Mat001.mp3\n")
 
-    has_column = ensure_column(engine, write)
+    has_column = ensure_column(engine, column, write)
 
     db = SessionLocal()
     changed = unchanged = 0
     no_file: list[str] = []
     try:
         # Ask only for the columns we need, so --check still works before the column exists.
-        current_url = getattr(Chapter, COLUMN) if has_column else literal(None)
+        current_url = getattr(Chapter, column) if has_column else literal(None)
         rows = (
             db.query(Chapter.id, Chapter.chapter_number, Book.name, Book.order, current_url)
             .join(Book, Chapter.book_id == Book.id)
@@ -162,13 +170,13 @@ def run(write: bool) -> None:
             if file_name is None:
                 no_file.append(f"{book_name} {chapter_number}")
                 continue
-            url = public_url(file_name)
+            url = public_url(bucket, file_name)
             if current == url:
                 unchanged += 1
                 continue
             changed += 1
             if write:
-                db.execute(update(Chapter).where(Chapter.id == chapter_id).values({COLUMN: url}))
+                db.execute(update(Chapter).where(Chapter.id == chapter_id).values({column: url}))
             elif changed <= 5:  # a few examples so you can open one in the browser
                 print(f"  {book_name} {chapter_number}  ->  {url}")
         if write:
@@ -201,10 +209,11 @@ def run(write: bool) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Save each chapter's Spanish audio URL from Supabase Storage.")
+    parser = argparse.ArgumentParser(description="Save each chapter's audio URL from Supabase Storage.")
+    parser.add_argument("--lang", choices=sorted(AUDIO), default="es", help="which recordings to link (default: es)")
     parser.add_argument("--check", action="store_true", help="show what would be saved; write nothing")
     args = parser.parse_args()
-    run(write=not args.check)
+    run(args.lang, write=not args.check)
 
 
 if __name__ == "__main__":

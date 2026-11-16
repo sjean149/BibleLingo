@@ -16,7 +16,7 @@ const HELPER = {
 };
 
 // The teaching shown above a grammar question, on the same screen (exercise.prompt.teach):
-//   { kind: 'rule' | 'example' | 'tip', title, body, examples: [{ target, native }],
+//   { kind: 'rule' | 'example' | 'tip', title, body, examples: [{ target, native }], label?,
 //     rule_title?, verse?: { text, translation, ref, highlight: [start, end] } }
 // A 'tip' is a one-line reminder of the rule; the others have a helper with a speech bubble.
 export default function TeachBlock({ teach, lang }) {
@@ -34,7 +34,7 @@ export default function TeachBlock({ teach, lang }) {
     );
   }
 
-  const label = KIND_LABEL[kind] ?? 'LEARN';
+  const label = teach.label ?? KIND_LABEL[kind] ?? 'LEARN'; // lessons in the learner's language bring their own
   return (
     <View style={styles.wrap}>
       <Text style={styles.kind}>
@@ -61,7 +61,8 @@ export default function TeachBlock({ teach, lang }) {
               style={({ pressed }) => [styles.example, pressed && { opacity: 0.8 }]}
             >
               <Text style={styles.exampleTarget}>{ex.target}</Text>
-              <Text style={styles.exampleNative}>{ex.native}</Text>
+              {/* English lessons have no translation to show under their examples. */}
+              {ex.native ? <Text style={styles.exampleNative}>{ex.native}</Text> : null}
             </Pressable>
           ))}
         </View>
@@ -87,7 +88,7 @@ function VerseBlock({ verse, lang }) {
         <Text style={styles.highlight}>{verse.text.slice(start, end)}</Text>
         {verse.text.slice(end)}
       </Text>
-      <Text style={styles.translation}>{verse.translation}</Text>
+      {verse.translation ? <Text style={styles.translation}>{verse.translation}</Text> : null}
       <View style={styles.verseFooter}>
         <Text style={styles.ref}>{verse.ref}</Text>
         <Ionicons name="volume-medium" size={18} color={colors.lapis} />

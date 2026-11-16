@@ -17,7 +17,7 @@ const GRAMMAR_INFO = {
   title: 'Grammar lesson',
   blurb: 'Optional: learn a rule, then use it in the verses you just read',
 };
-const GRAMMAR_LANGS = ['es'];
+const GRAMMAR_LANGS = ['es', 'fr', 'en'];
 const NEEDS_HEARTS = ['vocab', 'lesson']; // reading never costs hearts
 
 // The panel that slides up when a level is tapped: its three steps, in order.
@@ -51,7 +51,8 @@ export default function StepSheet({
           ) : null}
           <Text style={styles.title}>{title}</Text>
 
-          {STEPS.map((step, i) => {
+          {/* English has no Key Words step. */}
+          {STEPS.filter((step) => lang !== 'en' || step !== 'vocab').map((step, i) => {
             const info = step === 'lesson' && GRAMMAR_LANGS.includes(lang) ? GRAMMAR_INFO : STEP_INFO[step];
             const exists = available.includes(step);
             const finished = done.includes(step);

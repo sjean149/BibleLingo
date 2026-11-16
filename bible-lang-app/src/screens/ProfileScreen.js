@@ -6,7 +6,7 @@ import { APP_NAME } from '../appInfo';
 import { colors, radius } from '../theme';
 import { longestStreak } from '../progress/logic';
 import { useProgress } from '../progress/ProgressContext';
-import { GOOGLE_CONFIGURED, useAuth } from '../auth/AuthContext';
+import { GOOGLE_UNAVAILABLE_REASON, useAuth } from '../auth/AuthContext';
 import Flag from '../components/Flag';
 import LanguagePicker from '../components/LanguagePicker';
 import SpeedButton from '../components/SpeedButton';
@@ -26,7 +26,7 @@ function Stat({ icon, color, value, label }) {
 // The profile page: Google sign-in, the learner's progress and the settings. Progress is still
 // saved on this device only; signing in does not sync it yet.
 export default function ProfileScreen({ onOpenStreak, onOpenHearts }) {
-  const { state, lang, streak, days, premium, hearts, resetProgress } = useProgress();
+  const { state, lang, base, streak, days, premium, hearts, resetProgress } = useProgress();
   const { user, ready, busy, error: authError, signIn, signOut } = useAuth();
   const [picking, setPicking] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -64,8 +64,8 @@ export default function ProfileScreen({ onOpenStreak, onOpenHearts }) {
             <View style={styles.rowBody}>
               <Text style={styles.rowText}>{busy ? 'Signing in…' : 'Sign in with Google'}</Text>
               {authError ? <Text style={[styles.rowSub, { color: colors.madder }]}>{authError}</Text> : null}
+              {GOOGLE_UNAVAILABLE_REASON ? <Text style={styles.rowSub}>{GOOGLE_UNAVAILABLE_REASON}</Text> : null}
             </View>
-            {!GOOGLE_CONFIGURED && <Text style={styles.soon}>Not set up</Text>}
           </Pressable>
         )}
 
@@ -79,7 +79,10 @@ export default function ProfileScreen({ onOpenStreak, onOpenHearts }) {
         <Pressable onPress={() => setPicking(true)} style={styles.row} accessibilityRole="button" accessibilityLabel="Change language">
           <Flag lang={lang} />
           <View style={styles.rowBody}>
-            <Text style={styles.rowText}>Learning {LANGUAGE_NAMES[lang]}</Text>
+            <Text style={styles.rowText}>
+              Learning {LANGUAGE_NAMES[lang]}
+              {base ? ` from ${LANGUAGE_NAMES[base]}` : ''}
+            </Text>
             <Text style={styles.rowSub}>Tap to change</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color={colors.muted} />
@@ -175,6 +178,5 @@ const styles = StyleSheet.create({
   rowBody: { flex: 1, gap: 2 },
   rowText: { fontSize: 17, fontWeight: '700', color: colors.ink },
   rowSub: { fontSize: 14, color: colors.muted },
-  soon: { fontSize: 13, fontWeight: '700', color: colors.muted },
   cancel: { fontSize: 15, fontWeight: '700', color: colors.ink },
 });
