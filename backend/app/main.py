@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.database import Base, engine, get_db
-from app.routers import auth, lessons, translate, verses, journey
+from app.routers import auth, lessons, progress, translate, verses, journey
 
 # Dev convenience: auto-create tables if they don't exist.
 # Swap for Alembic migrations once the schema stabilizes.
@@ -19,7 +19,7 @@ origins = [o.strip().rstrip("/") for o in settings.allowed_origins.split(",") if
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins or ["*"],
-    allow_methods=["GET", "POST"],
+    allow_methods=["GET", "POST", "PUT"],  # PUT: saving progress (/progress)
     allow_headers=["*"],
 )
 
@@ -28,6 +28,7 @@ app.include_router(auth.router)
 app.include_router(lessons.router)
 app.include_router(translate.router)
 app.include_router(verses.router)
+app.include_router(progress.router)
 
 
 @app.get("/health")

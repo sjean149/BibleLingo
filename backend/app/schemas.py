@@ -111,3 +111,14 @@ class VerseOut(BaseModel):
 class ChapterAudioOut(BaseModel):
     """Link to the recording of a whole chapter, or null if there isn't one in that language."""
     audio_url: Optional[str] = None
+
+class ProgressIn(BaseModel):
+    data: dict[str, Any]
+    # True after "Reset progress": store this copy as it is instead of merging it in,
+    # so the old steps don't come back from the account.
+    replace: bool = False
+
+
+class ProgressOut(BaseModel):
+    data: Optional[dict[str, Any]]  # None when this account has never saved progress
+    updated_at: Optional[datetime]

@@ -126,6 +126,21 @@ export function fetchMe(accessToken) {
   return request('/auth/me', { headers: { Authorization: `Bearer ${accessToken}` } });
 }
 
+// The signed-in learner's progress saved on the server: { data, updated_at } (data null if none).
+export function fetchProgress(accessToken) {
+  return request('/progress', { headers: { Authorization: `Bearer ${accessToken}` } });
+}
+
+// Merge this device's progress into the account (replace: store it as is, after a reset).
+// Returns the account's combined progress: { data, updated_at }.
+export function saveProgress(accessToken, data, replace = false) {
+  return request('/progress', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify({ data, replace }),
+  });
+}
+
 export function translateText(text, sourceLang, targetLang = 'en') {
   return apiPost('/translate', { text, source_lang: sourceLang, target_lang: targetLang });
 }

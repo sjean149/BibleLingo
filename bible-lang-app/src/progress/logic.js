@@ -11,7 +11,9 @@
 //     last: { fr: 123 },                        // chapter the learner last worked on, per language
 //     premium: false,                           // unlimited hearts (set once payments are connected)
 //     speed: 1,                                 // listening speed for recordings and read-aloud
-//     base: 'es'                                // the language an English learner speaks ('es' or 'fr')
+//     base: 'es',                               // the language an English learner speaks ('es' or 'fr')
+//     savedAt: 1760000000000,                   // when the learner last changed something (for syncing)
+//     owner: 7                                  // signed-in user this copy belongs to (null: a guest's)
 //   }
 import { HEART_REFILL_MINUTES, MAX_HEARTS, SPEEDS, STEPS, UNLOCK_EVERYTHING } from './rules';
 
@@ -214,4 +216,65 @@ export function longestStreak(days) {
     previous = day;
   }
   return best;
+}
+
+// ---------------------------------------------------------------- syncing with the account
+// Signed-in learners' progress is also kept on the server (PUT /progress), which merges each
+// device's copy in. The rules match backend/app/services/progress_merge.py; keep them in step:
+// steps and practice days are joined, premium is kept if either copy has it, and the settings
+// (language, speed, last chapter) come from whichever copy was changed most recently.
+// Hearts and owner stay on each device.
+
+const SYNCED_SETTINGS = ['lang', 'base', 'speed', 'last'];
+
+// The part of the progress that goes to the server.
+export function syncedProgress(state) {
+  const out = {};
+  for (const key of SYNCED_SETTINGS) if (key in state) out[key] = state[key];
+  out.steps = state.steps ?? {};
+  out.days = state.days ?? [];
+  out.premium = !!state.premium;
+  out.savedAt = state.savedAt ?? 0;
+  return out;
+}
+
+// A string that changes exactly when the synced part does (step keys sorted, so the same
+// progress always gives the same string). Used to tell whether there is anything to upload.
+export function progressFingerprint(state) {
+  const synced = syncedProgress(state);
+  const steps = {};
+  for (const key of Object.keys(synced.steps).sort()) steps[key] = synced.steps[key];
+  return JSON.stringify({ ...synced, steps, days: [...synced.days].sort() });
+}
+
+const orderSteps = (steps) => [
+  ...STEPS.filter((s) => steps.has(s)),
+  ...[...steps].filter((s) => !STEPS.includes(s)).sort(),
+];
+
+// This device's progress with the account's merged in. Returns `local` itself when the account
+// adds nothing, so saving the result doesn't start another round of syncing.
+export function mergeProgress(local, account) {
+  if (!account) return local;
+  const accountNewer = (account.savedAt ?? 0) > (local.savedAt ?? 0);
+  const newer = accountNewer ? account : local;
+  const older = accountNewer ? local : account;
+
+  const steps = {};
+  for (const copy of [local, account]) {
+    for (const [key, done] of Object.entries(copy.steps ?? {})) {
+      if (!Array.isArray(done)) continue;
+      steps[key] = new Set([...(steps[key] ?? []), ...done]);
+    }
+  }
+  const merged = { ...local };
+  for (const key of SYNCED_SETTINGS) {
+    if (key in newer) merged[key] = newer[key];
+    else if (key in older) merged[key] = older[key];
+  }
+  merged.steps = Object.fromEntries(Object.entries(steps).map(([key, done]) => [key, orderSteps(done)]));
+  merged.days = [...new Set([...(local.days ?? []), ...(account.days ?? [])])].sort();
+  merged.premium = !!local.premium || !!account.premium;
+  merged.savedAt = Math.max(local.savedAt ?? 0, account.savedAt ?? 0);
+  return progressFingerprint(merged) === progressFingerprint(local) ? local : merged;
 }

@@ -155,3 +155,19 @@ class SRSQueueItem(Base):
     next_review_at = Column(DateTime(timezone=True), nullable=False)
     ease_factor = Column(Float, default=2.5)
     interval_days = Column(Integer, default=1)
+
+
+class UserProgressState(Base):
+    """
+    The app's saved progress for one signed-in learner, as the JSON object the app keeps
+    (finished steps per chapter, practice days, last chapter, language, listening speed).
+    One row per user. Devices send their copy to PUT /progress, which merges it in
+    (app/services/progress_merge.py), so a phone and the website can both add progress.
+
+    (UserProgress above is an older per-lesson design that nothing writes to.)
+    """
+    __tablename__ = "user_progress_state"
+
+    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    data = Column(JSON, nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

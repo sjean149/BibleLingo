@@ -128,7 +128,13 @@ export default function ProfileScreen({ onOpenStreak, onOpenHearts }) {
           <Ionicons name="refresh" size={24} color={colors.madder} />
           <View style={styles.rowBody}>
             <Text style={[styles.rowText, { color: colors.madder }]}>{confirming ? 'Tap again to erase all progress' : 'Reset progress'}</Text>
-            {confirming && <Text style={styles.rowSub}>Clears chapters, streak and hearts on this device.</Text>}
+            {confirming && (
+              <Text style={styles.rowSub}>
+                {user
+                  ? 'Clears chapters, streak and hearts here and in your account, on every device.'
+                  : 'Clears chapters, streak and hearts on this device.'}
+              </Text>
+            )}
           </View>
           {confirming && (
             <Pressable onPress={() => setConfirming(false)} hitSlop={8} accessibilityRole="button" accessibilityLabel="Cancel reset">
