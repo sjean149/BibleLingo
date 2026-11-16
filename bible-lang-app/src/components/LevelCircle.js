@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Circle, Path } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../theme';
+import { colors, fonts } from '../theme';
 import { STEPS } from '../progress/rules';
 import { arcPath, ringSegments } from '../utils/ring';
 
@@ -33,6 +33,8 @@ export default function LevelCircle({ number, status, available, done, color, on
         style={({ pressed }) => [styles.pressable, pressed && { transform: [{ scale: 0.96 }] }]}
       >
         <Svg width={SIZE} height={SIZE}>
+          {/* Parchment backing so the ring reads against the landscape behind the path. */}
+          <Circle cx={CENTER} cy={CENTER} r={RING_RADIUS + STROKE / 2} fill={colors.parchment} opacity={0.95} />
           {STEPS.map((step, i) => {
             const isDone = done.includes(step);
             const exists = available.includes(step);
@@ -74,7 +76,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  number: { fontSize: 24, fontWeight: '800', color: '#FFFFFF' },
+  number: { fontFamily: fonts.scripture, fontSize: 24, fontWeight: '700', color: '#FFFFFF' },
   startTag: {
     position: 'absolute',
     top: -6,

@@ -17,6 +17,16 @@ original. Do not copy Duolingo's actual characters, colors or poses.
 | **Lamb** | Soft, curious, encouraging. | Cheers on the "Lesson complete" screen. | "The Lamb of God" (John 1:29). |
 | **Fish** | Quick and cheerful. | Points out the rule in a verse from this chapter, above a fill-in-the-blank ("IN THIS CHAPTER"). | Galilee's fishermen, and the early Christian fish symbol. |
 
+## On the path
+
+The path screen is a pilgrim's road: the landscape behind it follows the setting of the chapter in
+the middle of the screen, and one helper stands beside the chapter the learner is up to, with the
+place's name. Which helper is chosen in `bible-lang-app/src/art/guides.js`:
+
+- **Gospels:** by setting. Sea: fish. Desert and wilderness: camel. Fields and the olive grove: lamb.
+  Mountains and towns: Jesus (silent, as everywhere else). John 1 is the lamb ("Behold the Lamb of God").
+- **Acts to Philemon:** Paul. **Hebrews to Jude:** the fish. **Revelation:** the lamb.
+
 ## Ideas for later
 
 - Small animations: the fish wiggling when an answer is right, the camel blinking while hearts refill.

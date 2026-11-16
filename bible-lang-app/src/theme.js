@@ -15,6 +15,13 @@ export const colors = {
   leafTint: '#DFF1E7',
   madder: '#B5443A',
   madderTint: '#F8E3E0',
+  // The path screen's pilgrim's road: parchment, gilt edging, brown ink, a sandy road.
+  parchment: '#FBF3E1',
+  gilt: '#B8860B',
+  inkBrown: '#5A3E1B',
+  sepia: '#8A6A2F',
+  road: '#D9BC8C',
+  roadEdge: '#B8935C',
 };
 
 // The scripture word is the one memorable element: set it in a serif.
