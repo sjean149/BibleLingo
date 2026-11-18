@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { APP_NAME } from '../appInfo';
+import { APP_NAME, PRIVACY_URL } from '../appInfo';
 import { colors, radius } from '../theme';
 import { longestStreak } from '../progress/logic';
 import { useProgress } from '../progress/ProgressContext';
@@ -23,13 +23,30 @@ function Stat({ icon, color, value, label }) {
   );
 }
 
-// The profile page: Google sign-in, the learner's progress and the settings. Progress is still
-// saved on this device only; signing in does not sync it yet.
+// The profile page: Google sign-in, the learner's progress and the settings. Signed-in learners'
+// progress is also saved in their account (ProgressContext syncs it); they can delete the account here.
 export default function ProfileScreen({ onOpenStreak, onOpenHearts }) {
-  const { state, lang, base, streak, days, premium, hearts, resetProgress } = useProgress();
-  const { user, ready, busy, error: authError, signIn, signOut } = useAuth();
+  const { state, lang, base, streak, days, premium, hearts, resetProgress, forgetAccount } = useProgress();
+  const { user, ready, busy, error: authError, signIn, signOut, deleteAccount } = useAuth();
   const [picking, setPicking] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  // Deleting the account: null | 'confirm' (asked once) | 'working' | an error message
+  const [deleting, setDeleting] = useState(null);
+
+  const onDeleteAccount = async () => {
+    if (deleting !== 'confirm') {
+      setDeleting('confirm');
+      return;
+    }
+    setDeleting('working');
+    try {
+      await deleteAccount();
+      forgetAccount();
+      setDeleting(null);
+    } catch (err) {
+      setDeleting(`Couldn't delete your account: ${err.message}`);
+    }
+  };
 
   // Steps finished in the current language (each chapter has up to three).
   const steps = Object.entries(state.steps)
@@ -141,6 +158,50 @@ export default function ProfileScreen({ onOpenStreak, onOpenHearts }) {
               <Text style={styles.cancel}>Cancel</Text>
             </Pressable>
           )}
+        </Pressable>
+
+        {user ? (
+          <Pressable
+            onPress={onDeleteAccount}
+            disabled={deleting === 'working'}
+            style={[styles.row, deleting === 'confirm' && styles.rowDanger]}
+            accessibilityRole="button"
+            accessibilityLabel="Delete account"
+          >
+            <Ionicons name="trash-outline" size={24} color={colors.madder} />
+            <View style={styles.rowBody}>
+              <Text style={[styles.rowText, { color: colors.madder }]}>
+                {deleting === 'confirm'
+                  ? 'Tap again to delete your account'
+                  : deleting === 'working'
+                    ? 'Deleting…'
+                    : 'Delete account'}
+              </Text>
+              {deleting === 'confirm' ? (
+                <Text style={styles.rowSub}>
+                  {"Permanently deletes your account and the progress saved in it, on every device. This can't be undone."}
+                </Text>
+              ) : deleting && deleting !== 'working' ? (
+                <Text style={[styles.rowSub, { color: colors.madder }]}>{deleting}</Text>
+              ) : null}
+            </View>
+            {deleting === 'confirm' && (
+              <Pressable onPress={() => setDeleting(null)} hitSlop={8} accessibilityRole="button" accessibilityLabel="Cancel deleting">
+                <Text style={styles.cancel}>Cancel</Text>
+              </Pressable>
+            )}
+          </Pressable>
+        ) : null}
+
+        <Pressable
+          onPress={() => Linking.openURL(PRIVACY_URL).catch(() => {})}
+          style={styles.row}
+          accessibilityRole="link"
+          accessibilityLabel="Privacy policy"
+        >
+          <Ionicons name="shield-checkmark-outline" size={24} color={colors.muted} />
+          <Text style={[styles.rowText, styles.rowBody]}>Privacy policy</Text>
+          <Ionicons name="open-outline" size={20} color={colors.muted} />
         </Pressable>
       </ScrollView>
 

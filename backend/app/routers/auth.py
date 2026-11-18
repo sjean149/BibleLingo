@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.auth import verify_google_id_token, create_access_token, get_current_user
 from app.database import get_db
-from app.models import User
+from app.models import SRSQueueItem, User, UserProgress, UserProgressState
 from app.schemas import GoogleAuthRequest, TokenResponse, UserOut
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -39,3 +39,18 @@ def google_sign_in(body: GoogleAuthRequest, db: Session = Depends(get_db)):
 @router.get("/me", response_model=UserOut)
 def get_me(current_user: User = Depends(get_current_user)):
     return current_user
+
+
+@router.delete("/me")
+def delete_me(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """
+    Erase the signed-in account and everything stored for it: saved progress (and the older,
+    unused per-lesson progress and review tables), then the user row itself. Google Play
+    requires apps with sign-in to offer this inside the app. The session token stops working
+    straight away, because get_current_user no longer finds the user.
+    """
+    for model in (UserProgressState, UserProgress, SRSQueueItem):
+        db.query(model).filter(model.user_id == current_user.id).delete(synchronize_session=False)
+    db.delete(current_user)
+    db.commit()
+    return {"deleted": True}

@@ -3,8 +3,8 @@ import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
-import { fetchMe, signInWithGoogle } from '../api';
-import { nativeGoogleSignIn, nativeGoogleSignOut } from './nativeGoogle';
+import { deleteAccount as deleteAccountRequest, fetchMe, signInWithGoogle } from '../api';
+import { nativeGoogleRevoke, nativeGoogleSignIn, nativeGoogleSignOut } from './nativeGoogle';
 
 // Closes the Google pop-up on web once it redirects back to the app.
 WebBrowser.maybeCompleteAuthSession();
@@ -97,6 +97,17 @@ export function AuthProvider({ children }) {
     if (NATIVE_GOOGLE) await nativeGoogleSignOut();
   }, []);
 
+  // Delete the account on the server (user and saved progress), then sign out. Throws if the
+  // server refuses, so the screen can say so and the learner stays signed in.
+  const token = session?.token ?? null;
+  const deleteAccount = useCallback(async () => {
+    if (!token) return;
+    await deleteAccountRequest(token);
+    setSession(null);
+    await AsyncStorage.removeItem(KEY).catch(() => {});
+    if (NATIVE_GOOGLE) await nativeGoogleRevoke();
+  }, [token]);
+
   const value = useMemo(
     () => ({
       user: session?.user ?? null,
@@ -106,8 +117,9 @@ export function AuthProvider({ children }) {
       error,
       signIn,
       signOut,
+      deleteAccount,
     }),
-    [session, prompt, busy, error, signIn, signOut]
+    [session, prompt, busy, error, signIn, signOut, deleteAccount]
   );
   return (
     <AuthContext.Provider value={value}>

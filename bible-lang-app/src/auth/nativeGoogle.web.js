@@ -5,3 +5,5 @@ export async function nativeGoogleSignIn() {
 }
 
 export async function nativeGoogleSignOut() {}
+
+export async function nativeGoogleRevoke() {}

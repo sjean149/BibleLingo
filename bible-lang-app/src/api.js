@@ -141,6 +141,11 @@ export function saveProgress(accessToken, data, replace = false) {
   });
 }
 
+// Permanently delete the signed-in account and its saved progress on the server.
+export function deleteAccount(accessToken) {
+  return request('/auth/me', { method: 'DELETE', headers: { Authorization: `Bearer ${accessToken}` } });
+}
+
 export function translateText(text, sourceLang, targetLang = 'en') {
   return apiPost('/translate', { text, source_lang: sourceLang, target_lang: targetLang });
 }

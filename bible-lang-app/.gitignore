@@ -42,3 +42,4 @@ yarn-error.*
 
 # Gradle output from compiling local native modules
 /modules/*/android/build/
+/modules/*/android/.gradle/

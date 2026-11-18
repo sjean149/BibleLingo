@@ -142,6 +142,10 @@ export function ProgressProvider({ children }) {
         setState((s) => touched(completeStepLogic(s, lang, chapterId, step, Date.now()), s)),
       setPremium: (premium) => setState((s) => ({ ...s, premium: UNLIMITED_HEARTS || !!premium })),
       setSpeed: (speed) => setState((s) => touched({ ...s, speed }, s)),
+      // After deleting the account: clear its progress from this device too, as a guest's fresh
+      // start (no owner, nothing to upload).
+      forgetAccount: () =>
+        setState((s) => ({ ...resetProgressLogic(s, Date.now()), owner: null, savedAt: 0 })),
       resetProgress: () => {
         replaceRef.current = true; // the account's copy is replaced too, so old steps don't come back
         setState((s) => ({ ...resetProgressLogic(s, Date.now()), owner: s.owner ?? null, savedAt: Date.now() }));

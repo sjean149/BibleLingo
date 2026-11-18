@@ -4,6 +4,9 @@ export const APP_NAME = 'BibleLingo';
 // What the Share button sends. Once the app has a public address (a website or an app store
 // page) put it in SHARE_URL and every share will include it.
 export const SHARE_URL = '';
+// The privacy policy (docs/privacy/index.html, published with GitHub Pages).
+export const PRIVACY_URL = 'https://sjean149.github.io/BibleLingo/privacy/';
+
 // Credit shown under a chapter recording. Bible Brain's license requires the French one.
 export const AUDIO_CREDITS = {
   fr: { text: 'Audio: used by permission of Trésor sonore', url: 'https://www.tresorsonore.com' },

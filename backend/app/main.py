@@ -19,7 +19,7 @@ origins = [o.strip().rstrip("/") for o in settings.allowed_origins.split(",") if
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins or ["*"],
-    allow_methods=["GET", "POST", "PUT"],  # PUT: saving progress (/progress)
+    allow_methods=["GET", "POST", "PUT", "DELETE"],  # PUT: saving progress; DELETE: deleting an account
     allow_headers=["*"],
 )
 

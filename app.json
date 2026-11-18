@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "6bcfeba3-60f7-4422-a7bd-e16bd3a19e70"
+      }
+    },
+    "android": {
+      "package": "com.sjean149.bibleduo"
+    }
+  }
+}

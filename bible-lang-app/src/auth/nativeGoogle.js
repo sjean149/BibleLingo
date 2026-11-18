@@ -35,6 +35,17 @@ export async function nativeGoogleSignIn(webClientId) {
   }
 }
 
+// After deleting the account: disconnect BibleLingo from the Google account entirely (the app
+// disappears from the person's Google "Third-party apps" list), then sign out.
+export async function nativeGoogleRevoke() {
+  try {
+    await GoogleSignin.revokeAccess();
+  } catch {
+    // already disconnected
+  }
+  await nativeGoogleSignOut();
+}
+
 // Forget the chosen account too, so the next sign-in asks which account again.
 export async function nativeGoogleSignOut() {
   try {
